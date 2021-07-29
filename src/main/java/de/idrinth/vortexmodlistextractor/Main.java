@@ -51,7 +51,7 @@ public class Main {
                 if (attributes.containsKey(ATTR_HOMEPAGE) && attributes.get(ATTR_HOMEPAGE) != null) {
                     url = (String) attributes.get(ATTR_HOMEPAGE);
                 } else if (attributes.containsKey(ATTR_ID) && attributes.get(ATTR_ID) != null) {
-                    url = "https://www.nexusmods.com/skyrimspecialedition/mods/" + (String.valueOf((Long) attributes.get(ATTR_ID)));
+                    url = "https://www.nexusmods.com/skyrimspecialedition/mods/" + String.valueOf(attributes.get(ATTR_ID));
                 }
             }
             if (isCmdMode) {
