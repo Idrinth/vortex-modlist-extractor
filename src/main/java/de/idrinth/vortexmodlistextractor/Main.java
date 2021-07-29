@@ -84,6 +84,9 @@ public class Main {
                 input = j.getSelectedFile();
                 mods = getMods(input);
                 game = (String) JOptionPane.showInputDialog(null, "Choose the game", "Game", JOptionPane.QUESTION_MESSAGE, null, mods.keySet().toArray(), null);
+                if (game == null) {
+                    throw new IllegalArgumentException("You need to choose a game.");
+                }
                 return new Config(new File(input.getParent() + "/modlist." + game + ".txt"), mods, game);
             default:
                 throw new java.lang.IllegalArgumentException("You have to call with either no parameters or with 2 (backup, game) or with 3 (backup, game, output)");
