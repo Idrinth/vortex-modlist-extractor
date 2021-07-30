@@ -18,6 +18,7 @@ public class Main {
     private static final String ATTR_NAME = "modName";
     private static final String ATTR_ID = "modId";
     private static final String ATTR_HOMEPAGE = "homepage";
+    private static final String ATTR_FILENAME = "logicalFileName";
 
     private static JSONObject getMods(File input) throws IOException, ParseException {
         JSONParser parser = new JSONParser();
@@ -41,12 +42,16 @@ public class Main {
         }
         for (Object key : gameMods.keySet()) {
             String modName = (String) key;
+            String file = "";
             String url = "";
             JSONObject mod = (JSONObject) gameMods.get(key);
             if (mod != null && mod.containsKey(ATTR_ATTRIBUTES)) {
                 JSONObject attributes = (JSONObject) mod.get(ATTR_ATTRIBUTES);
                 if (attributes.containsKey(ATTR_NAME) && attributes.get(ATTR_NAME) != null) {
                     modName = (String) attributes.get(ATTR_NAME);
+                }
+                if (attributes.containsKey(ATTR_FILENAME) && attributes.get(ATTR_FILENAME) != null) {
+                    file += (String) attributes.get(ATTR_FILENAME);
                 }
                 if (attributes.containsKey(ATTR_HOMEPAGE) && attributes.get(ATTR_HOMEPAGE) != null) {
                     url = (String) attributes.get(ATTR_HOMEPAGE);
@@ -55,9 +60,12 @@ public class Main {
                 }
             }
             if (isCmdMode) {
-                System.out.println(modName + " => " + url);
+                System.out.println(modName + " [" + file + "] => " + url);
             }
             output.append(modName);
+            output.append(" [");
+            output.append(file);
+            output.append("]");
             output.append(" => ");
             output.append(url);
             output.append("\n");
