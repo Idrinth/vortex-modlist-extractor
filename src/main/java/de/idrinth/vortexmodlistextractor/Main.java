@@ -29,10 +29,10 @@ public class Main {
                 return (JSONObject) persistent.get(ATTR_MODS);
             }
         }
-        throw new java.lang.IllegalArgumentException("No mods defined");
+        throw new IllegalArgumentException("No mods defined");
     }
 
-    private static void parseModlist(StringBuilder output, JSONObject mods, String game, boolean isCmdMode) {
+    private static void parseModlist(Output output, JSONObject mods, String game, boolean isCmdMode) {
         if (!mods.containsKey(game)) {
             return;
         }
@@ -62,26 +62,23 @@ public class Main {
             if (isCmdMode) {
                 System.out.println(modName + " [" + file + "] => " + url);
             }
-            output.append(modName);
-            output.append(" [");
-            output.append(file);
-            output.append("]");
-            output.append(" => ");
-            output.append(url);
-            output.append("\n");
+            output.add(modName, file, url);
         }
     }
 
     private static Config getSettings(String[] args) throws IOException, ParseException {
         File input;
         String game;
+        String type;
         JSONObject mods;
         switch (args.length) {
+            case 4:
+                return new Config(new File(args[2]), getMods(new File(args[0])), args[1], args[3]);
             case 3:
-                return new Config(new File(args[2]), getMods(new File(args[0])), args[1]);
+                return new Config(new File(args[2]), getMods(new File(args[0])), args[1], "txt");
             case 2:
                 input = new File(args[0]);
-                return new Config(new File(input.getParent() + "/modlist." + args[1] + ".txt"), getMods(input), args[1]);
+                return new Config(new File(input.getParent() + "/modlist." + args[1] + ".txt"), getMods(input), args[1], "txt");
             case 0:
                 JOptionPane.showMessageDialog(null, "Please select the backup you just created.");
                 JFileChooser j = new JFileChooser();
@@ -95,9 +92,13 @@ public class Main {
                 if (game == null) {
                     throw new IllegalArgumentException("You need to choose a game.");
                 }
-                return new Config(new File(input.getParent() + "/modlist." + game + ".txt"), mods, game);
+                type = (String) JOptionPane.showInputDialog(null, "Choose the output format", "Output", JOptionPane.QUESTION_MESSAGE, null, new String[]{"txt", "html"}, null);
+                if (type == null) {
+                    throw new IllegalArgumentException("You need to choose an output format.");
+                }
+                return new Config(new File(input.getParent() + "/modlist." + game + "." + type), mods, game, type);
             default:
-                throw new java.lang.IllegalArgumentException("You have to call with either no parameters or with 2 (backup, game) or with 3 (backup, game, output)");
+                throw new IllegalArgumentException("You have to call with either no parameters or with 2 (backup, game) or with 3 (backup, game, output) or with 4 (backup, game, output, extension)");
         }
     }
 
@@ -105,14 +106,14 @@ public class Main {
         boolean isCmdMode = args.length > 0;
         try {
             Config config = getSettings(args);
-            StringBuilder output = new StringBuilder();
+            Output output = config.extension == "html" ? new HTMLOutput() : new TextOutput();
             parseModlist(output, config.mods, config.game, isCmdMode);
             try {
                 if (!config.out.exists()) {
                     config.out.createNewFile();
                 }
                 try (FileWriter fw = new FileWriter(config.out)) {
-                    fw.write(output.toString());
+                    fw.write(output.get());
                 }
                 if (!isCmdMode) {
                     JOptionPane.showMessageDialog(null, "Result was written to " + config.out.getAbsoluteFile() + ".");
@@ -133,19 +134,5 @@ public class Main {
             System.exit(1);
         }
         System.exit(0);
-    }
-
-    private static class Config {
-
-        public final File out;
-        public final JSONObject mods;
-        public final String game;
-
-        public Config(File out, JSONObject mods, String game) {
-            this.out = out;
-            this.mods = mods;
-            this.game = game;
-        }
-
     }
 }
